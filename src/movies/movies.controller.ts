@@ -6,7 +6,6 @@ import type { Movie } from './interfaces/movie.interface';
 
 @Controller('movies') // Tất cả route bắt đầu bằng /movies
 export class MoviesController {
-  // NestJS tự inject MoviesService vào đây — đây là Dependency Injection
   constructor(private readonly moviesService: MoviesService) {}
 
   // GET /movies
