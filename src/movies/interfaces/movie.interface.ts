@@ -5,6 +5,6 @@ export interface Movie {
   duration: number; // phút
   genre: string;
   releaseDate: string;
-  posterUrl: string;
+  posterUrl?: string;
   createdAt: Date;
 }

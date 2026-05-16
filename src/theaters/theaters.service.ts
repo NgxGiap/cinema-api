@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Theater } from './interfaces/theater.interface';
-import type { CreateTheaterDto } from './dto/create-theater.dto';
-import type { UpdateTheaterDto } from './dto/update-theater.dto';
+import { CreateTheaterDto } from './dto/create-theater.dto';
+import { UpdateTheaterDto } from './dto/update-theater.dto';
 
 @Injectable()
 export class TheatersService {

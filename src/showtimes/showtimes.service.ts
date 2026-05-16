@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Showtime } from './interfaces/showtime.interface';
-import type { CreateShowtimeDto } from './dto/create-showtime.dto';
-import type { UpdateShowtimeDto } from './dto/update-showtime.dto';
+import { CreateShowtimeDto } from './dto/create-showtime.dto';
+import { UpdateShowtimeDto } from './dto/update-showtime.dto';
 
 @Injectable()
 export class ShowtimesService {

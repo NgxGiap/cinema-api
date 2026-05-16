@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
 import { SeatsService } from './seats.service';
-import type { CreateSeatDto } from './dto/create-seat.dto';
-import type { UpdateSeatDto } from './dto/update-seat.dto';
+import { CreateSeatDto } from './dto/create-seat.dto';
+import { UpdateSeatDto } from './dto/update-seat.dto';
 import type { Seat } from './interfaces/seat.interface';
 
 @Controller('seats')
