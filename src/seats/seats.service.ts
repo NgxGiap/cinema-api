@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Seat, SeatStatus } from './interfaces/seat.interface';
-import type { CreateSeatDto } from './dto/create-seat.dto';
-import type { UpdateSeatDto } from './dto/update-seat.dto';
+import { CreateSeatDto } from './dto/create-seat.dto';
+import { UpdateSeatDto } from './dto/update-seat.dto';
 
 @Injectable()
 export class SeatsService {
@@ -39,7 +39,11 @@ export class SeatsService {
   }
 
   create(dto: CreateSeatDto): Seat {
-    const newSeat: Seat = { id: this.nextId++, ...dto };
+    const newSeat: Seat = {
+      id: this.nextId++,
+      ...dto,
+      status: 'available',
+    };
     this.seats.push(newSeat);
     return newSeat;
   }
