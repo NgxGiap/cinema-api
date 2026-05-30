@@ -1,40 +1,50 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { MoviesService } from './movies.service';
 import { CreateMovieDto } from './dto/create-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import type { Movie } from './interfaces/movie.interface';
+import type { Movie } from './entities/movie.entity';
 
-@Controller('movies') // Tất cả route bắt đầu bằng /movies
+@Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MoviesService) {}
 
-  // GET /movies
+  // GET /movies?search=avengers&page=1&limit=10
   @Get()
-  findAll(): Movie[] {
-    return this.moviesService.findAll();
+  findAll(
+    @Query('search') search?: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+  ): Promise<{ data: Movie[]; meta: object }> {
+    return this.moviesService.findAll(search, page, limit);
   }
 
-  // GET /movies/1
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Movie {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Movie> {
     return this.moviesService.findOne(id);
   }
 
-  // POST /movies
   @Post()
-  create(@Body() createMovieDto: CreateMovieDto): Movie {
-    return this.moviesService.create(createMovieDto);
+  create(@Body() dto: CreateMovieDto): Promise<Movie> {
+    return this.moviesService.create(dto);
   }
 
-  // PUT /movies/1
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateMovieDto: UpdateMovieDto): Movie {
-    return this.moviesService.update(id, updateMovieDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateMovieDto): Promise<Movie> {
+    return this.moviesService.update(id, dto);
   }
 
-  // DELETE /movies/1
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): { message: string } {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.moviesService.remove(id);
   }
 }

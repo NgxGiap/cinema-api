@@ -1,80 +1,67 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Showtime } from './interfaces/showtime.interface';
-import { CreateShowtimeDto } from './dto/create-showtime.dto';
-import { UpdateShowtimeDto } from './dto/update-showtime.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Showtime } from './entities/showtime.entity';
+import type { CreateShowtimeDto } from './dto/create-showtime.dto';
+import type { UpdateShowtimeDto } from './dto/update-showtime.dto';
 
 @Injectable()
 export class ShowtimesService {
-  private showtimes: Showtime[] = [
-    {
-      id: 1,
-      movieId: 1,
-      theaterId: 1,
-      startTime: new Date('2026-05-10T10:00:00'),
-      endTime: new Date('2026-05-10T13:01:00'),
-      price: 85000,
-      createdAt: new Date(),
-    },
-    {
-      id: 2,
-      movieId: 2,
-      theaterId: 1,
-      startTime: new Date('2026-05-10T14:00:00'),
-      endTime: new Date('2026-05-10T16:28:00'),
-      price: 75000,
-      createdAt: new Date(),
-    },
-  ];
+  constructor(
+    @InjectRepository(Showtime)
+    private readonly showtimeRepository: Repository<Showtime>,
+  ) {}
 
-  private nextId = 3;
-
-  findAll(): Showtime[] {
-    return this.showtimes;
+  async findAll(): Promise<Showtime[]> {
+    return await this.showtimeRepository.find({
+      relations: {
+        movie: true,
+        theater: true,
+      }, // Join lấy thông tin phim + rạp
+      order: { startTime: 'ASC' },
+    });
   }
 
-  // Lấy suất chiếu theo movieId
-  findByMovie(movieId: number): Showtime[] {
-    return this.showtimes.filter((s) => s.movieId === movieId);
+  async findByMovie(movieId: number): Promise<Showtime[]> {
+    return await this.showtimeRepository.find({
+      where: { movieId },
+      relations: {
+        theater: true,
+      },
+      order: { startTime: 'ASC' },
+    });
   }
 
-  findOne(id: number): Showtime {
-    const showtime = this.showtimes.find((s) => s.id === id);
+  async findOne(id: number): Promise<Showtime> {
+    const showtime = await this.showtimeRepository.findOne({
+      where: { id },
+      relations: {
+        movie: true,
+        theater: true,
+      },
+    });
     if (!showtime) throw new NotFoundException(`Không tìm thấy suất chiếu ID ${id}`);
     return showtime;
   }
 
-  create(dto: CreateShowtimeDto): Showtime {
-    const newShowtime: Showtime = {
-      id: this.nextId++,
+  async create(dto: CreateShowtimeDto): Promise<Showtime> {
+    const showtime = this.showtimeRepository.create({
       ...dto,
       startTime: new Date(dto.startTime),
       endTime: new Date(dto.endTime),
-      createdAt: new Date(),
-    };
-    this.showtimes.push(newShowtime);
-    return newShowtime;
+    });
+    return await this.showtimeRepository.save(showtime);
   }
 
-  update(id: number, dto: UpdateShowtimeDto): Showtime {
-    const showtime = this.findOne(id);
-
-    const index = this.showtimes.findIndex((s) => s.id === id);
-
-    this.showtimes[index] = {
-      ...showtime,
-      ...dto,
-
-      startTime: dto.startTime ? new Date(dto.startTime) : showtime.startTime,
-
-      endTime: dto.endTime ? new Date(dto.endTime) : showtime.endTime,
-    };
-
-    return this.showtimes[index];
+  async update(id: number, dto: UpdateShowtimeDto): Promise<Showtime> {
+    const showtime = await this.findOne(id);
+    Object.assign(showtime, dto);
+    return await this.showtimeRepository.save(showtime);
   }
 
-  remove(id: number): { message: string } {
-    this.findOne(id);
-    this.showtimes = this.showtimes.filter((s) => s.id !== id);
+  async remove(id: number): Promise<{ message: string }> {
+    const showtime = await this.findOne(id);
+    await this.showtimeRepository.remove(showtime);
     return { message: `Đã xoá suất chiếu ID ${id}` };
   }
 }

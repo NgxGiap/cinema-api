@@ -1,71 +1,63 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { Seat, SeatStatus } from './interfaces/seat.interface';
-import { CreateSeatDto } from './dto/create-seat.dto';
-import { UpdateSeatDto } from './dto/update-seat.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Seat } from './entities/seat.entity';
+import type { SeatStatus } from './entities/seat.entity';
+import type { CreateSeatDto } from './dto/create-seat.dto';
+import type { UpdateSeatDto } from './dto/update-seat.dto';
 
 @Injectable()
 export class SeatsService {
-  private seats: Seat[] = [
-    { id: 1, showTimeId: 1, row: 'A', number: 1, status: 'available', price: 85000 },
-    { id: 2, showTimeId: 1, row: 'A', number: 2, status: 'available', price: 85000 },
-    { id: 3, showTimeId: 1, row: 'A', number: 3, status: 'booked', price: 85000 },
-    { id: 4, showTimeId: 1, row: 'B', number: 1, status: 'available', price: 95000 },
-    { id: 5, showTimeId: 1, row: 'B', number: 2, status: 'reserved', price: 95000 },
-    { id: 6, showTimeId: 2, row: 'A', number: 1, status: 'available', price: 75000 },
-    { id: 7, showTimeId: 2, row: 'A', number: 2, status: 'available', price: 75000 },
-  ];
+  constructor(
+    @InjectRepository(Seat)
+    private readonly seatRepository: Repository<Seat>,
+  ) {}
 
-  private nextId = 8;
-
-  // Lấy tất cả ghế
-  findAll(): Seat[] {
-    return this.seats;
+  async findAll(): Promise<Seat[]> {
+    return await this.seatRepository.find();
   }
 
-  // Lấy ghế theo suất chiếu — dùng khi hiển thị sơ đồ ghế
-  findByShowtime(showTimeId: number): Seat[] {
-    return this.seats.filter((s) => s.showTimeId === showTimeId);
+  async findByShowtime(showTimeId: number): Promise<Seat[]> {
+    return await this.seatRepository.find({
+      where: { showTimeId },
+      order: { row: 'ASC', number: 'ASC' },
+    });
   }
 
-  // Lấy ghế còn trống theo suất chiếu
-  findAvailableByShowtime(showTimeId: number): Seat[] {
-    return this.seats.filter((s) => s.showTimeId === showTimeId && s.status === 'available');
+  async findAvailableByShowtime(showTimeId: number): Promise<Seat[]> {
+    return await this.seatRepository.find({
+      where: { showTimeId, status: 'available' },
+      order: { row: 'ASC', number: 'ASC' },
+    });
   }
 
-  findOne(id: number): Seat {
-    const seat = this.seats.find((s) => s.id === id);
+  async findOne(id: number): Promise<Seat> {
+    const seat = await this.seatRepository.findOne({ where: { id } });
     if (!seat) throw new NotFoundException(`Không tìm thấy ghế ID ${id}`);
     return seat;
   }
 
-  create(dto: CreateSeatDto): Seat {
-    const newSeat: Seat = {
-      id: this.nextId++,
-      ...dto,
-      status: 'available',
-    };
-    this.seats.push(newSeat);
-    return newSeat;
+  async create(dto: CreateSeatDto): Promise<Seat> {
+    const seat = this.seatRepository.create(dto);
+    return await this.seatRepository.save(seat);
   }
 
-  update(id: number, dto: UpdateSeatDto): Seat {
-    const seat = this.findOne(id);
-    const index = this.seats.findIndex((s) => s.id === id);
-    this.seats[index] = { ...seat, ...dto };
-    return this.seats[index];
+  async update(id: number, dto: UpdateSeatDto): Promise<Seat> {
+    const seat = await this.findOne(id);
+    Object.assign(seat, dto);
+    return await this.seatRepository.save(seat);
   }
 
-  // Dùng nội bộ khi đặt vé — đổi trạng thái ghế
-  updateStatus(id: number, status: SeatStatus): Seat {
-    const seat = this.findOne(id);
-    const index = this.seats.findIndex((s) => s.id === id);
-    this.seats[index] = { ...seat, status };
-    return this.seats[index];
+  // Dùng nội bộ khi booking — không expose ra controller
+  async updateStatus(id: number, status: SeatStatus): Promise<Seat> {
+    const seat = await this.findOne(id);
+    seat.status = status;
+    return await this.seatRepository.save(seat);
   }
 
-  remove(id: number): { message: string } {
-    this.findOne(id);
-    this.seats = this.seats.filter((s) => s.id !== id);
+  async remove(id: number): Promise<{ message: string }> {
+    const seat = await this.findOne(id);
+    await this.seatRepository.remove(seat);
     return { message: `Đã xoá ghế ID ${id}` };
   }
 }

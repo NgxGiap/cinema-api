@@ -10,43 +10,46 @@ export class SeatsController {
 
   // GET /seats
   @Get()
-  findAll(): Seat[] {
+  findAll(): Promise<Seat[]> {
     return this.seatsService.findAll();
   }
 
   // GET /seats/by-showtime/1 — sơ đồ ghế theo suất chiếu
   @Get('by-showtime/:showTimeId')
-  findByShowtime(@Param('showTimeId', ParseIntPipe) showTimeId: number): Seat[] {
+  findByShowtime(@Param('showTimeId', ParseIntPipe) showTimeId: number): Promise<Seat[]> {
     return this.seatsService.findByShowtime(showTimeId);
   }
 
   // GET /seats/available/1 — ghế còn trống theo suất chiếu
   @Get('available/:showTimeId')
-  findAvailable(@Param('showTimeId', ParseIntPipe) showTimeId: number): Seat[] {
+  findAvailable(@Param('showTimeId', ParseIntPipe) showTimeId: number): Promise<Seat[]> {
     return this.seatsService.findAvailableByShowtime(showTimeId);
   }
 
   // GET /seats/1
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number): Seat {
+  findOne(@Param('id', ParseIntPipe) id: number): Promise<Seat> {
     return this.seatsService.findOne(id);
   }
 
   // POST /seats
   @Post()
-  create(@Body() createSeatDto: CreateSeatDto): Seat {
+  create(@Body() createSeatDto: CreateSeatDto): Promise<Seat> {
     return this.seatsService.create(createSeatDto);
   }
 
   // PUT /seats/1
   @Put(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateSeatDto: UpdateSeatDto): Seat {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateSeatDto: UpdateSeatDto,
+  ): Promise<Seat> {
     return this.seatsService.update(id, updateSeatDto);
   }
 
   // DELETE /seats/1
   @Delete(':id')
-  remove(@Param('id', ParseIntPipe) id: number): { message: string } {
+  remove(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.seatsService.remove(id);
   }
 }
