@@ -5,7 +5,6 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
 import { Movie } from '../../movies/entities/movie.entity';
 import { Theater } from '../../theaters/entities/theater.entity';
